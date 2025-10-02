@@ -39,6 +39,8 @@ var (
 	ErrLineParsingInvalidDateFormat           = errors.New("invalid date format")
 	ErrLineParsingUnsupportedDataType         = errors.New("unsupported data type")
 	ErrLineParsingReservedFieldPosReference   = errors.New("field position 1 and 2 are reserved")
+	ErrLineParsingUnterminatedEscapeSequence  = errors.New("unterminated escape sequence")
+	ErrLineParsingUnknownEscapeSequence       = errors.New("unknown escape sequence")
 )
 
 // StructureParsing

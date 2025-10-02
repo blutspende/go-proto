@@ -1,11 +1,12 @@
 package functions
 
 import (
+	"testing"
+	"time"
+
 	"github.com/blutspende/go-astm/v3/enums/notation"
 	"github.com/blutspende/go-astm/v3/errmsg"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 // Note: structures come from functions_test.go
@@ -606,4 +607,13 @@ func TestBuildLine_EscapedCharsNoEscape(t *testing.T) {
 	assert.Equal(t, "T|1|esc^ape", result)
 	// Teardown
 	teardown()
+}
+
+func TestBuildHL7EscapeChars_AllDelimiters(t *testing.T) {
+	// Arrange
+	input := "esc\r|~^&\\ape"
+	// Act
+	result := buildHL7EscapeChars(input, configHL7)
+	// Assert
+	assert.Equal(t, `esc\X0D\\F\\R\\S\\T\\E\ape`, result)
 }

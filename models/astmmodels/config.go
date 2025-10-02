@@ -1,11 +1,12 @@
 package astmmodels
 
 import (
+	"time"
+
 	"github.com/blutspende/bloodlab-common/encoding"
 	"github.com/blutspende/bloodlab-common/timezone"
 	"github.com/blutspende/go-astm/v3/enums/lineseparator"
 	"github.com/blutspende/go-astm/v3/enums/notation"
-	"time"
 )
 
 // Configuration struct for the whole process
@@ -41,15 +42,25 @@ var DefaultConfiguration = Configuration{
 
 // Delimiters used in ASTM parsing
 type Delimiters struct {
-	Field     string
-	Repeat    string
-	Component string
-	Escape    string
+	Field        string
+	Repeat       string
+	Component    string
+	SubComponent string
+	Escape       string
 }
+
+// TODO: rename and reorganise astm and hl7 default delimiters
 
 var DefaultDelimiters = Delimiters{
 	Field:     `|`,
 	Repeat:    `\`,
 	Component: `^`,
 	Escape:    `&`,
+}
+var HL7DefaultDelimiters = Delimiters{
+	Field:        `|`,
+	Repeat:       `~`,
+	Component:    `^`,
+	SubComponent: `&`,
+	Escape:       `\`,
 }

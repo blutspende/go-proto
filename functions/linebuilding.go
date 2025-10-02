@@ -2,17 +2,18 @@ package functions
 
 import (
 	"errors"
-	"github.com/blutspende/go-astm/v3/constants"
-	notationconst "github.com/blutspende/go-astm/v3/enums/notation"
-	"github.com/blutspende/go-astm/v3/errmsg"
-	"github.com/blutspende/go-astm/v3/models"
-	"github.com/blutspende/go-astm/v3/models/astmmodels"
 	"math"
 	"reflect"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/blutspende/go-astm/v3/constants"
+	notationconst "github.com/blutspende/go-astm/v3/enums/notation"
+	"github.com/blutspende/go-astm/v3/errmsg"
+	"github.com/blutspende/go-astm/v3/models"
+	"github.com/blutspende/go-astm/v3/models/astmmodels"
 )
 
 func BuildLine(sourceStruct interface{}, lineTypeName string, sequenceNumber int, config *astmmodels.Configuration) (result string, err error) {
@@ -282,6 +283,31 @@ func buildStringEscapeChars(input string, config *astmmodels.Configuration) stri
 			builder.WriteRune(rune(config.Delimiters.Escape[0]))
 		}
 		builder.WriteRune(inputRunes[i])
+	}
+	return builder.String()
+}
+
+func buildHL7EscapeChars(input string, config *astmmodels.Configuration) string {
+	var builder strings.Builder
+	inputRunes := []rune(input)
+	esc := string(config.Delimiters.Escape[0])
+	for i := 0; i < len(inputRunes); i++ {
+		switch inputRunes[i] {
+		case rune(config.Delimiters.Field[0]):
+			builder.WriteString(esc + "F" + esc)
+		case rune(config.Delimiters.Repeat[0]):
+			builder.WriteString(esc + "R" + esc)
+		case rune(config.Delimiters.Component[0]):
+			builder.WriteString(esc + "S" + esc)
+		case rune(config.Delimiters.SubComponent[0]):
+			builder.WriteString(esc + "T" + esc)
+		case rune(config.Delimiters.Escape[0]):
+			builder.WriteString(esc + "E" + esc)
+		case '\r':
+			builder.WriteString(esc + "X0D" + esc)
+		default:
+			builder.WriteRune(inputRunes[i])
+		}
 	}
 	return builder.String()
 }

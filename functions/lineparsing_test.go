@@ -1,10 +1,11 @@
 package functions
 
 import (
-	"github.com/blutspende/go-astm/v3/errmsg"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/blutspende/go-astm/v3/errmsg"
+	"github.com/stretchr/testify/assert"
 )
 
 // Note: structures come from functions_test.go
@@ -488,4 +489,94 @@ func TestFilterEscapeChars_Unicode(t *testing.T) {
 	result := filterStringEscapeChars(input, config.Delimiters.Escape)
 	// Assert
 	assert.Equal(t, "őáúäö|", result)
+}
+
+func TestReplaceHL7Escapes(t *testing.T) {
+	// Arrange
+	input := `abc\F\def`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.Nil(t, err)
+	assert.Equal(t, "abc|def", result)
+}
+
+func TestReplaceHL7Escapes_AtTheEnd(t *testing.T) {
+	// Arrange
+	input := `abcd\S\`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.Nil(t, err)
+	assert.Equal(t, "abcd^", result)
+}
+
+func TestReplaceHL7Escapes_Unicode(t *testing.T) {
+	// Arrange
+	input := `őáú\S\äö`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.Nil(t, err)
+	assert.Equal(t, "őáú^äö", result)
+}
+
+func TestReplaceHL7Escapes_MissingTerminator(t *testing.T) {
+	// Arrange
+	input := `abc\Fdef`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.EqualError(t, err, errmsg.ErrLineParsingUnterminatedEscapeSequence.Error())
+	assert.Equal(t, "", result)
+}
+
+func TestReplaceHL7Escapes_UnknownSequence(t *testing.T) {
+	// Arrange
+	input := `abc\U\def`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.EqualError(t, err, errmsg.ErrLineParsingUnknownEscapeSequence.Error())
+	assert.Equal(t, "", result)
+}
+
+func TestReplaceHL7Escapes_HexChar(t *testing.T) {
+	// Arrange
+	input := `abc\X0A\def`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.Nil(t, err)
+	assert.Equal(t, "abc\ndef", result)
+}
+
+func TestReplaceHL7Escapes_InvalidHex(t *testing.T) {
+	// Arrange
+	input := `abc\X0A3\def`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.EqualError(t, err, errmsg.ErrLineParsingUnknownEscapeSequence.Error())
+	assert.Equal(t, "", result)
+}
+
+func TestReplaceHL7Escapes_InvalidLowercaseHex(t *testing.T) {
+	// Arrange
+	input := `abc\X0a\def`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.EqualError(t, err, errmsg.ErrLineParsingUnknownEscapeSequence.Error())
+	assert.Equal(t, "", result)
+}
+
+func TestReplaceHL7Escapes_Br(t *testing.T) {
+	// Arrange
+	input := `abc\.br\def`
+	// Act
+	result, err := replaceHL7Escapes(input, configHL7)
+	// Assert
+	assert.Nil(t, err)
+	assert.Equal(t, "abc\rdef", result)
 }

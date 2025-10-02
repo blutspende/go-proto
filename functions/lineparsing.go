@@ -2,14 +2,16 @@ package functions
 
 import (
 	"errors"
+	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/blutspende/go-astm/v3/constants"
 	"github.com/blutspende/go-astm/v3/errmsg"
 	"github.com/blutspende/go-astm/v3/models"
 	"github.com/blutspende/go-astm/v3/models/astmmodels"
-	"reflect"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func ParseLine(inputLine string, targetStruct interface{}, recordAnnotation models.AstmStructAnnotation, sequenceNumber int, config *astmmodels.Configuration) (nameOk bool, err error) {
@@ -319,4 +321,48 @@ func filterStringEscapeChars(input string, escape string) string {
 		}
 	}
 	return builder.String()
+}
+
+func replaceHL7Escapes(input string, config *astmmodels.Configuration) (result string, err error) {
+	var builder strings.Builder
+	escapeRune := rune(config.Delimiters.Escape[0])
+	inputRunes := []rune(input)
+	for i := 0; i < len(inputRunes); i++ {
+		if inputRunes[i] == escapeRune {
+			var end int
+			for end = i + 1; end < len(inputRunes) && inputRunes[end] != escapeRune; end++ {
+			}
+			if end == len(inputRunes) {
+				return "", errmsg.ErrLineParsingUnterminatedEscapeSequence
+			}
+			escapeSeq := string(inputRunes[i+1 : end])
+			switch escapeSeq {
+			case "F":
+				builder.WriteString(config.Delimiters.Field)
+			case "S":
+				builder.WriteString(config.Delimiters.Component)
+			case "R":
+				builder.WriteString(config.Delimiters.Repeat)
+			case "E":
+				builder.WriteString(config.Delimiters.Escape)
+			case "T":
+				builder.WriteString(config.Delimiters.SubComponent)
+			case ".br":
+				builder.WriteString("\r")
+			default:
+				if regexp.MustCompile("^X[0-9A-F]{2}$").MatchString(escapeSeq) {
+					charNumStr := escapeSeq[1:]
+					charInt, _ := strconv.ParseInt(charNumStr, 16, 32)
+					charStr := string(rune(charInt))
+					builder.WriteString(charStr)
+				} else {
+					return "", errmsg.ErrLineParsingUnknownEscapeSequence
+				}
+			}
+			i = end
+		} else {
+			builder.WriteRune(inputRunes[i])
+		}
+	}
+	return builder.String(), nil
 }

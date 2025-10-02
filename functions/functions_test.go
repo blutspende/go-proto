@@ -1,14 +1,18 @@
 package functions
 
 import (
-	"github.com/blutspende/go-astm/v3/models"
-	"github.com/blutspende/go-astm/v3/models/astmmodels"
 	"testing"
 	"time"
+
+	"github.com/blutspende/go-astm/v3/models"
+	"github.com/blutspende/go-astm/v3/models/astmmodels"
 )
 
 // Configuration struct for tests
 var config *astmmodels.Configuration
+
+// TODO: rename and restructure astm and hl7 configs
+var configHL7 *astmmodels.Configuration
 
 // Reset config to default values
 func teardown() {
@@ -16,6 +20,11 @@ func teardown() {
 	*config = astmmodels.DefaultConfiguration
 	config.Delimiters = astmmodels.DefaultDelimiters
 	config.TimeLocation, _ = config.TimeZone.GetLocation()
+
+	configHL7 = &astmmodels.Configuration{}
+	*configHL7 = astmmodels.DefaultConfiguration
+	configHL7.Delimiters = astmmodels.HL7DefaultDelimiters
+	configHL7.TimeLocation, _ = configHL7.TimeZone.GetLocation()
 }
 
 // Setup mock data for every test
