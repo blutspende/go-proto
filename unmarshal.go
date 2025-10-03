@@ -4,11 +4,12 @@ import (
 	"github.com/blutspende/bloodlab-common/encoding"
 	"github.com/blutspende/go-astm/v3/functions"
 	"github.com/blutspende/go-astm/v3/models/astmmodels"
+	"github.com/blutspende/go-astm/v3/utils"
 )
 
-func Unmarshal(messageData []byte, targetStruct interface{}, configuration ...astmmodels.Configuration) (err error) {
-	// Load configuration
-	config, err := loadConfiguration(configuration...)
+func Unmarshal(messageData []byte, targetStruct interface{}, config *astmmodels.Configuration) (err error) {
+	// Init configuration
+	err = utils.InitConfig(config)
 	if err != nil {
 		return err
 	}

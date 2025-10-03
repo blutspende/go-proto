@@ -580,3 +580,30 @@ func TestReplaceHL7Escapes_Br(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "abc\rdef", result)
 }
+
+func TestParseLine_SubSubAstm(t *testing.T) {
+	// Arrange
+	input := "T|1|field1|comp1^sub1?sub2?sub3^comp3|field3"
+	target := SubSubRecord{}
+	// Act
+	_, err := ParseLine(input, &target, createStructAnnotation("T"), 1, config)
+	// Assert
+	assert.EqualError(t, err, errmsg.ErrLineParsingMaximumRecursionDepthExceeded.Error())
+}
+
+func TestParseLine_SubSubHl7(t *testing.T) {
+	// Arrange
+	input := "REC|1|field1|comp1^sub1&sub2&sub3^comp3|field3"
+	target := SubSubRecord{}
+	// Act
+	_, err := ParseLine(input, &target, createStructAnnotation("REC"), 1, configHL7)
+	// Assert
+	assert.Nil(t, err)
+	assert.Equal(t, "field1", target.First)
+	assert.Equal(t, "comp1", target.Second.First)
+	assert.Equal(t, "sub1", target.Second.Second.First)
+	assert.Equal(t, "sub2", target.Second.Second.Second)
+	assert.Equal(t, "sub3", target.Second.Second.Third)
+	assert.Equal(t, "comp3", target.Second.Third)
+	assert.Equal(t, "field3", target.Third)
+}

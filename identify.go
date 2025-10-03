@@ -1,16 +1,18 @@
 package astm
 
 import (
+	"regexp"
+
 	"github.com/blutspende/bloodlab-common/encoding"
 	"github.com/blutspende/bloodlab-common/messagetype"
 	"github.com/blutspende/go-astm/v3/functions"
 	"github.com/blutspende/go-astm/v3/models/astmmodels"
-	"regexp"
+	"github.com/blutspende/go-astm/v3/utils"
 )
 
-func IdentifyMessage(messageData []byte, configuration ...astmmodels.Configuration) (messageType messagetype.MessageType, err error) {
-	// Load configuration
-	config, err := loadConfiguration(configuration...)
+func IdentifyMessage(messageData []byte, config *astmmodels.Configuration) (messageType messagetype.MessageType, err error) {
+	// Init configuration
+	err = utils.InitConfig(config)
 	if err != nil {
 		return "", err
 	}

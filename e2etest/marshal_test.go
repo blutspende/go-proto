@@ -2,6 +2,9 @@ package e2e
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/blutspende/bloodlab-common/encoding"
 	"github.com/blutspende/bloodlab-common/timezone"
 	"github.com/blutspende/go-astm/v3"
@@ -9,8 +12,6 @@ import (
 	"github.com/blutspende/go-astm/v3/models/messageformat/lis02a2"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/encoding/charmap"
-	"testing"
-	"time"
 )
 
 type MissingComponentMessage struct {

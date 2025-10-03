@@ -115,7 +115,7 @@ func ParseLine(inputLine string, targetStruct interface{}, recordAnnotation mode
 				if targetFieldAnnotation.IsSubstructure {
 					// |comp1^comp2^comp3\comp1^comp2^comp3\comp1^comp2^comp3|
 					// Substructures (with components) in the array: use parseSubstructure
-					err = parseSubstructure(repeat, arrayValue.Index(j).Addr().Interface(), config)
+					err = parseSubstructure(repeat, arrayValue.Index(j).Addr().Interface(), 1, config)
 					if err != nil {
 						return true, err
 					}
@@ -150,7 +150,7 @@ func ParseLine(inputLine string, targetStruct interface{}, recordAnnotation mode
 		} else if targetFieldAnnotation.IsSubstructure {
 			// |comp1^comp2^comp3|
 			// If the field is a substructure use parseSubstructure to process it
-			err = parseSubstructure(inputField, targetValues[i].Addr().Interface(), config)
+			err = parseSubstructure(inputField, targetValues[i].Addr().Interface(), 1, config)
 			if err != nil {
 				return true, err
 			}
@@ -169,9 +169,29 @@ func ParseLine(inputLine string, targetStruct interface{}, recordAnnotation mode
 	return true, nil
 }
 
-func parseSubstructure(inputString string, targetStruct interface{}, config *astmmodels.Configuration) (err error) {
+func parseSubstructure(inputString string, targetStruct interface{}, depth int, config *astmmodels.Configuration) (err error) {
+	// Check depth limits
+	if (config.Protocol == astmmodels.ASTM && depth > 1) || (config.Protocol == astmmodels.HL7 && depth > 2) {
+		return errmsg.ErrLineParsingMaximumRecursionDepthExceeded
+	}
+
+	// Determine depth dependent delimiter
+	delimiter := ""
+	switch depth {
+	case 1:
+		delimiter = config.Delimiters.Component
+	case 2:
+		delimiter = config.Delimiters.SubComponent
+	default:
+		return errmsg.ErrLineParsingInvalidRecursionDepth
+	}
 	// Split the input with the field delimiter
-	inputFields := splitStringWithEscape(inputString, config.Delimiters.Component, config.Delimiters.Escape)
+	var inputFields []string
+	if config.Protocol == astmmodels.ASTM {
+		inputFields = splitStringWithEscape(inputString, delimiter, config.Delimiters.Escape)
+	} else {
+		inputFields = strings.Split(inputString, delimiter)
+	}
 
 	// Process the target structure
 	targetTypes, targetValues, _, err := ProcessStructReflection(targetStruct)
@@ -204,8 +224,13 @@ func parseSubstructure(inputString string, targetStruct interface{}, config *ast
 		// Save the current inputField
 		inputField := inputFields[targetFieldAnnotation.FieldPos-1]
 
-		// Set field is value
-		err = setField(inputField, targetValues[i], targetFieldAnnotation, config)
+		// Recurse if the target is also a struct
+		if targetValues[i].Kind() == reflect.Struct && targetFieldAnnotation.IsSubstructure {
+			err = parseSubstructure(inputField, targetValues[i].Addr().Interface(), depth+1, config)
+		} else {
+			// Field is single value: set it
+			err = setField(inputField, targetValues[i], targetFieldAnnotation, config)
+		}
 		if err != nil {
 			return err
 		}

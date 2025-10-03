@@ -1,6 +1,9 @@
 package e2e
 
 import (
+	"testing"
+	"time"
+
 	"github.com/blutspende/bloodlab-common/encoding"
 	"github.com/blutspende/bloodlab-common/timezone"
 	"github.com/blutspende/go-astm/v3"
@@ -8,8 +11,6 @@ import (
 	"github.com/blutspende/go-astm/v3/models/messageformat/lis02a2"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/encoding/charmap"
-	"testing"
-	"time"
 )
 
 type ComponentedRecord struct {
@@ -199,6 +200,8 @@ func TestCustomRecord(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, float32(4.14159), message.CustomRecord.Float32Value)
 	assert.Equal(t, float64(2.172), message.CustomRecord.Float64Value)
+	// Teardown
+	teardown()
 }
 
 type SubMessageSubstructure struct {
@@ -232,6 +235,7 @@ func TestSubstructureArrayMapping(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, message.Anonymous.Rec.SubstructureArray, 2)
 	assert.Equal(t, "a", message.Anonymous.Rec.SubstructureArray[0].Component1)
+	assert.Equal(t, "", message.Anonymous.Rec.SubstructureArray[0].Component2)
 	assert.Equal(t, "c", message.Anonymous.Rec.SubstructureArray[0].Component3)
 	assert.Equal(t, "d", message.Anonymous.Rec.SubstructureArray[1].Component1)
 	assert.Equal(t, "e", message.Anonymous.Rec.SubstructureArray[1].Component2)

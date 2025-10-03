@@ -11,6 +11,8 @@ import (
 
 // Configuration struct for the whole process
 type Configuration struct {
+	Protocol                   Protocol
+	ProtocolVersion            string
 	Encoding                   encoding.Encoding
 	LineSeparator              string
 	AutoDetectLineSeparator    bool
@@ -25,8 +27,10 @@ type Configuration struct {
 	TimeLocation               *time.Location
 }
 
-var DefaultConfiguration = Configuration{
-	Encoding:                   encoding.ISO8859_1,
+var DefaultConfigurationASTM = Configuration{
+	Protocol:                   ASTM,
+	ProtocolVersion:            "",
+	Encoding:                   encoding.UTF8,
 	LineSeparator:              lineseparator.LF,
 	AutoDetectLineSeparator:    true,
 	TimeZone:                   timezone.EuropeBerlin,
@@ -36,9 +40,31 @@ var DefaultConfiguration = Configuration{
 	RoundLastDecimal:           true,
 	KeepShortDateTimeZone:      true,
 	EscapeOutputStrings:        false,
-	Delimiters:                 DefaultDelimiters,
+	Delimiters:                 DefaultDelimitersASTM,
 	TimeLocation:               nil,
 }
+
+var DefaultConfigurationHL7 = Configuration{
+	Protocol:                   HL7,
+	ProtocolVersion:            "",
+	Encoding:                   encoding.UTF8,
+	LineSeparator:              lineseparator.LF,
+	AutoDetectLineSeparator:    true,
+	TimeZone:                   timezone.EuropeBerlin,
+	EnforceSequenceNumberCheck: true,
+	Notation:                   notation.Standard,
+	DefaultDecimalPrecision:    3,
+	RoundLastDecimal:           true,
+	KeepShortDateTimeZone:      true,
+	EscapeOutputStrings:        false,
+	Delimiters:                 DefaultDelimitersHL7,
+	TimeLocation:               nil,
+}
+
+type Protocol string
+
+const ASTM Protocol = "ASTM"
+const HL7 Protocol = "HL7"
 
 // Delimiters used in ASTM parsing
 type Delimiters struct {
@@ -49,15 +75,13 @@ type Delimiters struct {
 	Escape       string
 }
 
-// TODO: rename and reorganise astm and hl7 default delimiters
-
-var DefaultDelimiters = Delimiters{
+var DefaultDelimitersASTM = Delimiters{
 	Field:     `|`,
 	Repeat:    `\`,
 	Component: `^`,
 	Escape:    `&`,
 }
-var HL7DefaultDelimiters = Delimiters{
+var DefaultDelimitersHL7 = Delimiters{
 	Field:        `|`,
 	Repeat:       `~`,
 	Component:    `^`,

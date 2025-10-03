@@ -6,25 +6,19 @@ import (
 
 	"github.com/blutspende/go-astm/v3/models"
 	"github.com/blutspende/go-astm/v3/models/astmmodels"
+	"github.com/blutspende/go-astm/v3/utils"
 )
 
-// Configuration struct for tests
+// Configuration structs for tests
 var config *astmmodels.Configuration
-
-// TODO: rename and restructure astm and hl7 configs
 var configHL7 *astmmodels.Configuration
 
-// Reset config to default values
+// Reset configs to default values
 func teardown() {
-	config = &astmmodels.Configuration{}
-	*config = astmmodels.DefaultConfiguration
-	config.Delimiters = astmmodels.DefaultDelimiters
-	config.TimeLocation, _ = config.TimeZone.GetLocation()
-
-	configHL7 = &astmmodels.Configuration{}
-	*configHL7 = astmmodels.DefaultConfiguration
-	configHL7.Delimiters = astmmodels.HL7DefaultDelimiters
-	configHL7.TimeLocation, _ = configHL7.TimeZone.GetLocation()
+	config = utils.NewDefaultConfiguration(astmmodels.ASTM)
+	_ = utils.InitConfig(config)
+	configHL7 = utils.NewDefaultConfiguration(astmmodels.HL7)
+	_ = utils.InitConfig(configHL7)
 }
 
 // Setup mock data for every test
@@ -255,6 +249,22 @@ type MissingAnnotationRecord struct {
 }
 type InvalidAttributeValueRecord struct {
 	First float64 `astm:"3,length:one"`
+}
+
+type SubSubField struct {
+	First  string `astm:"1"`
+	Second string `astm:"2"`
+	Third  string `astm:"3"`
+}
+type SubField struct {
+	First  string      `astm:"1"`
+	Second SubSubField `astm:"2"`
+	Third  string      `astm:"3"`
+}
+type SubSubRecord struct {
+	First  string   `astm:"3"`
+	Second SubField `astm:"4"`
+	Third  string   `astm:"5"`
 }
 
 // Structures

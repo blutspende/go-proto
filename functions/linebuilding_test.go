@@ -258,6 +258,7 @@ func TestBuildLine_HeaderRecordCustomDelimiters(t *testing.T) {
 	assert.Equal(t, "H/!*%/first", result)
 	// Teardown
 	teardown()
+	assert.Equal(t, "^", config.Delimiters.Component)
 }
 func TestBuildLine_HeaderDelimiterChange(t *testing.T) {
 	// Arrange
